@@ -1,0 +1,34 @@
+name: Apply UI fix
+on:
+  push:
+    paths: ['fix-ui.css']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inject UI override
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          css=Path('fix-ui.css').read_text(encoding='utf-8')
+          marker='/* ui-fix-v2 */'
+          block='<style>'+marker+css+'</style>'
+          if marker in s:
+              import re
+              s=re.sub(r'<style>/\* ui-fix-v2 \*/.*?</style>',block,s,count=1,flags=re.S)
+          else:
+              s=s.replace('</head>',block+'</head>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || (git commit -m 'Apply homepage UI alignment and Top 5 styling' && git push)
