@@ -1,0 +1,1 @@
+(()=>{const css=document.createElement('link');css.rel='stylesheet';css.href='https://raw.githubusercontent.com/aq000144728-maker/shinsekai-cupbook/main/fix-ui.css?ts='+Date.now();document.head.appendChild(css)})();
