@@ -1,0 +1,46 @@
+name: Recover live site
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    if: ${{ !contains(github.event.head_commit.message, '[recovered]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Recover and patch current production
+        shell: bash
+        run: |
+          if [ -f index.html ]; then
+            echo "index.html already exists; nothing to recover"
+            exit 0
+          fi
+          curl -L --fail --retry 3 https://shinsekai-cupbook.vercel.app/ -o index.html
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace('TOP 5 寄杯排行榜', '新世界 TOP 5 排行榜')
+          s = s.replace('<h3 lang="ja">新世界の王者参上!</h3>', '<h3>新世界王者參上</h3>')
+          s = s.replace('footer{margin:0 -16px;background:#ff4c91;border-top:4px solid #080808;text-align:center;padding:18px 10px;font-weight:900;font-size:18px}', 'footer{margin:0 -16px;background:#ff4c91;border-top:4px solid #080808;text-align:center;padding:18px 10px;font-weight:900;font-size:11px}')
+          s = s.replace('.txt h3{margin:0;font-size:32px;letter-spacing:-1px}', '.txt h3{margin:0;font-size:20px;line-height:1.25;letter-spacing:0;font-weight:1000;text-align:center;display:flex;align-items:center;justify-content:center;min-height:50px}')
+          s = s.replace('.txt h3{font-size:27px}', '.txt h3{font-size:20px}')
+          s = s.replace('.rankTitle{position:absolute;left:-4px;top:-24px;background:#ff4c91;border:4px solid #080808;padding:9px 18px;font-size:25px;font-weight:1000;transform:skew(-8deg);box-shadow:7px 7px 0 #080808}', '.rankTitle{position:absolute;left:-4px;top:-24px;background:#ff4c91;color:#fff;border:4px solid #080808;padding:9px 18px;font-size:22px;font-weight:1000;transform:skew(-8deg);box-shadow:7px 7px 0 #080808;text-align:center}.rankTitle::first-line{color:#fff}.rankRow{color:#fff;background:#080808}.rankRow span:last-child{color:#ffd91b}.rankRow:nth-child(1) .dot{background:#d4af37}.rankRow:nth-child(2) .dot{background:#c0c0c0}.rankRow:nth-child(3) .dot{background:#cd7f32}')
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit recovered source
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html && git ls-files --error-unmatch index.html >/dev/null 2>&1; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "[recovered] Save live cupbook source and apply approved styling"
+          git push
