@@ -201,6 +201,8 @@ function renderTransaction(){
   if(!selectedCustomer) return;
   signatureDirty=false;
   document.getElementById('transactionBox').innerHTML=`${customerSummary(selectedCustomer)}
+    <h3 class="deduct-title" style="margin-bottom:10px">新增寄杯</h3>
+    <button id="addDepositButton" type="button" class="btn" style="background:#ff4c91" onclick="addDeposit20()">＋ 新增一組寄杯（20杯）</button>
     <h3 class="deduct-title">扣除寄杯</h3>
     <div class="cup-buttons">
       ${[1,2,3,4,5].map(n=>`<button type="button" class="cup-choice" data-cups="${n}" onclick="chooseCups(${n})">${n}杯</button>`).join('')}
@@ -219,6 +221,23 @@ function renderTransaction(){
     <button id="confirmUseButton" class="btn deduct-confirm" onclick="submitTx()" disabled>確認扣除</button>`;
   setupCanvas();
   updateDeductSubmit();
+}
+
+async function addDeposit20(){
+  if(!selectedCustomer) return;
+  if(!confirm('確認已收款，並新增一組寄杯（20杯）？')) return;
+  const button=document.getElementById('addDepositButton');
+  if(button){button.disabled=true;button.textContent='新增中…';}
+  try{
+    const d=await adminPost({action:'transaction',customer_id:selectedCustomer.id,type:'deposit',cups:20,note:'追加寄杯｜1組｜已確認收款',signature:null});
+    selectedCustomer=d.customer||{...selectedCustomer,current_cups:Number(selectedCustomer.current_cups||0)+20,total_deposited:Number(selectedCustomer.total_deposited||0)+20};
+    alert('完成：已新增一組寄杯（20杯）');
+    renderTransaction();
+    loadHome();
+  }catch(e){
+    alert(e.message);
+    if(button){button.disabled=false;button.textContent='＋ 新增一組寄杯（20杯）';}
+  }
 }
 
 function setupCanvas(){
