@@ -1,0 +1,74 @@
+name: Patch quick deposit button
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/patch-quick-deposit.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index.html
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          if 'onclick="addDeposit20()"' not in s:
+              needle = '''document.getElementById('transactionBox').innerHTML=`${customerSummary(selectedCustomer)}
+    <h3 class="deduct-title">扣除寄杯</h3>'''
+              replacement = '''document.getElementById('transactionBox').innerHTML=`${customerSummary(selectedCustomer)}
+    <h3 class="deduct-title" style="margin-bottom:10px">新增寄杯</h3>
+    <button id="addDepositButton" type="button" class="btn" style="background:#ff4c91" onclick="addDeposit20()">＋ 新增一組寄杯（20杯）</button>
+    <h3 class="deduct-title">扣除寄杯</h3>'''
+              if needle not in s:
+                  raise SystemExit('renderTransaction insertion point not found')
+              s = s.replace(needle, replacement, 1)
+
+          if 'async function addDeposit20(){' not in s:
+              needle = '''function setupCanvas(){'''
+              addition = '''async function addDeposit20(){
+  if(!selectedCustomer) return;
+  if(!confirm('確認已收款，並新增一組寄杯（20杯）？')) return;
+  const button=document.getElementById('addDepositButton');
+  if(button){button.disabled=true;button.textContent='新增中…';}
+  try{
+    const d=await adminPost({action:'transaction',customer_id:selectedCustomer.id,type:'deposit',cups:20,note:'追加寄杯｜1組｜已確認收款',signature:null});
+    selectedCustomer=d.customer||{...selectedCustomer,current_cups:Number(selectedCustomer.current_cups||0)+20,total_deposited:Number(selectedCustomer.total_deposited||0)+20};
+    alert('完成：已新增一組寄杯（20杯）');
+    renderTransaction();
+    loadHome();
+  }catch(e){
+    alert(e.message);
+    if(button){button.disabled=false;button.textContent='＋ 新增一組寄杯（20杯）';}
+  }
+}
+
+function setupCanvas(){'''
+              if needle not in s:
+                  raise SystemExit('setupCanvas insertion point not found')
+              s = s.replace(needle, addition, 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit patch
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git config user.name "ChatGPT"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Add quick deposit 20-cup action"
+          git push
