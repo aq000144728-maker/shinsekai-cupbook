@@ -1,0 +1,40 @@
+name: Add ranking profile settings UI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/add-ranking-profile.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add ranking profile UI
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          if 'ranking-profile-v1' in s:
+              raise SystemExit(0)
+          payload=base64.b64decode('PHN0eWxlIGlkPSJyYW5raW5nLXByb2ZpbGUtdjEiPgoucmFua2luZy1wcm9maWxle21hcmdpbi10b3A6MTRweDtib3JkZXI6M3B4IHNvbGlkICMwODA4MDg7Ym9yZGVyLXJhZGl1czoxMnB4O2JhY2tncm91bmQ6I2ZmZjtwYWRkaW5nOjE0cHh9Ci5yYW5raW5nLXByb2ZpbGUgaDN7bWFyZ2luOjAgMCAxMHB4O2ZvbnQtc2l6ZToyMHB4O3RleHQtYWxpZ246bGVmdH0KLnJhbmtpbmctcHJvZmlsZSAuZmllbGR7bWFyZ2luOjEwcHggMH0KLnJhbmtpbmctcHJvZmlsZSAuZmllbGQgbGFiZWx7Zm9udC1zaXplOjE1cHh9Ci5yYW5raW5nLWNoZWNre2Rpc3BsYXk6ZmxleDthbGlnbi1pdGVtczpjZW50ZXI7Z2FwOjEwcHg7Ym9yZGVyOjNweCBzb2xpZCAjMDgwODA4O2JvcmRlci1yYWRpdXM6MTBweDtiYWNrZ3JvdW5kOiNmZmY4Yzc7cGFkZGluZzoxMnB4O21hcmdpbjoxMHB4IDA7Zm9udC13ZWlnaHQ6MTAwMDtjdXJzb3I6cG9pbnRlcn0KLnJhbmtpbmctY2hlY2sgaW5wdXR7d2lkdGg6MjJweDtoZWlnaHQ6MjJweDtmbGV4OjAgMCBhdXRvO2FjY2VudC1jb2xvcjojZmY0YzkxfQoucmFua2luZy1ub3Rle2ZvbnQtc2l6ZToxM3B4O2ZvbnQtd2VpZ2h0OjgwMDtjb2xvcjojNjY2O2xpbmUtaGVpZ2h0OjEuNDU7bWFyZ2luOjdweCAxcHggMH0KLnJhbmtpbmctcHJvZmlsZSAuYnRue21hcmdpbi10b3A6MTJweDtiYWNrZ3JvdW5kOiNmZjRjOTF9CkBtZWRpYShtYXgtd2lkdGg6NDQwcHgpey5yYW5raW5nLXByb2ZpbGV7cGFkZGluZzoxMnB4fS5yYW5raW5nLXByb2ZpbGUgaDN7Zm9udC1zaXplOjE5cHh9fQo8L3N0eWxlPgo8c2NyaXB0IGlkPSJyYW5raW5nLXByb2ZpbGUtc2NyaXB0LXYxIj4Kd2luZG93Lmxvb2t1cEN1cD1hc3luYyBmdW5jdGlvbigpewogY29uc3QgZWw9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2xvb2t1cFJlc3VsdCcpOwogZWwuaW5uZXJIVE1MPSc8ZGl2IGNsYXNzPSJyZXN1bHQiPuafpeipouS4reKApjwvZGl2Pic7CiB0cnl7CiAgY29uc3QgZD1hd2FpdCBwb3N0KCdjdXBib29rLXB1YmxpYycse2FjdGlvbjonbG9va3VwJyxwaG9uZTpkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnbG9va3VwUGhvbmUnKS52YWx1ZX0pOwogIGlmKCFkLmZvdW5kKXtlbC5pbm5lckhUTUw9JzxkaXYgY2xhc3M9InJlc3VsdCI+5p+l54Sh5a+E5p2v6LOH5paZPC9kaXY+JztyZXR1cm59CiAgY29uc3QgYz1kLmN1c3RvbWVyOwogIGNvbnN0IG5pY2tuYW1lPVN0cmluZyhjLm5pY2tuYW1lfHwnJyk7CiAgZWwuaW5uZXJIVE1MPWA8ZGl2IGNsYXNzPSJyZXN1bHQiPjxiPiR7ZXNjKGMubmFtZSl9PC9iPjxkaXYgY2xhc3M9InN0YXQiPjxkaXY+5Ymp6aSY5p2v5pW4PGI+JHtjLmN1cnJlbnRfY3Vwc308L2I+PC9kaXY+PGRpdj7ntK/nqY3lr4Tmna88Yj4ke2MudG90YWxfZGVwb3NpdGVkfTwvYj48L2Rpdj48ZGl2PuW3suS9v+eUqDxiPiR7Yy50b3RhbF91c2VkfTwvYj48L2Rpdj48ZGl2PuaOkuihjDxiPiMke2MucmFua3x8Jy0nfTwvYj48L2Rpdj48L2Rpdj48L2Rpdj4KICA8ZGl2IGNsYXNzPSJyYW5raW5nLXByb2ZpbGUiPgogICAgPGgzPuaOkuihjOamnOmhr+ekuuioreWumjwvaDM+CiAgICA8ZGl2IGNsYXNzPSJmaWVsZCI+PGxhYmVsIGZvcj0icmFua2luZ05pY2tuYW1lIj7mmrHnqLE8L2xhYmVsPjxpbnB1dCBpZD0icmFua2luZ05pY2tuYW1lIiBtYXhsZW5ndGg9IjMwIiBhdXRvY29tcGxldGU9Im9mZiIgcGxhY2Vob2xkZXI9Iui8uOWFpeaOkuihjOamnOaaseeosSIgdmFsdWU9IiR7ZXNjKG5pY2tuYW1lKX0iPjwvZGl2PgogICAgPGxhYmVsIGNsYXNzPSJyYW5raW5nLWNoZWNrIj48aW5wdXQgaWQ9InJhbmtpbmdGdWxsTmFtZSIgdHlwZT0iY2hlY2tib3giICR7Yy5zaG93X2Z1bGxfbmFtZT8nY2hlY2tlZCc6Jyd9PjxzcGFuPuaOkuihjOamnOmhr+ekuuWujOaVtOWnk+WQje+8iOWFqOWQje+8iTwvc3Bhbj48L2xhYmVsPgogICAgPGRpdiBjbGFzcz0icmFua2luZy1ub3RlIj7mnKrli77pgbjmmYLpoa/npLrmmrHnqLHvvJvmmrHnqLHnqbrnmb3liYfpoa/npLrjgIzlp5PmsI/vvIvlhYjnlJ8v5bCP5aeQ44CN44CCPC9kaXY+CiAgICA8YnV0dG9uIGlkPSJzYXZlUmFua2luZ1Byb2ZpbGVCdG4iIGNsYXNzPSJidG4iIHR5cGU9ImJ1dHRvbiIgb25jbGljaz0ic2F2ZVJhbmtpbmdQcm9maWxlKCkiPuWEsuWtmOaOkuihjOamnOioreWumjwvYnV0dG9uPgogICAgPGRpdiBpZD0icmFua2luZ1Byb2ZpbGVNZXNzYWdlIiBjbGFzcz0iZm9ybS1tZXNzYWdlIiBhcmlhLWxpdmU9InBvbGl0ZSI+PC9kaXY+CiAgPC9kaXY+YDsKIH1jYXRjaChlKXtlbC5pbm5lckhUTUw9YDxkaXYgY2xhc3M9InJlc3VsdCI+JHtlc2MoZS5tZXNzYWdlKX08L2Rpdj5gfQp9Owp3aW5kb3cuc2F2ZVJhbmtpbmdQcm9maWxlPWFzeW5jIGZ1bmN0aW9uKCl7CiBjb25zdCBtc2c9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3JhbmtpbmdQcm9maWxlTWVzc2FnZScpOwogY29uc3QgYnRuPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzYXZlUmFua2luZ1Byb2ZpbGVCdG4nKTsKIGNvbnN0IHBob25lPVN0cmluZyhkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnbG9va3VwUGhvbmUnKS52YWx1ZXx8JycpLnJlcGxhY2UoL1xEL2csJycpOwogY29uc3Qgbmlja25hbWU9U3RyaW5nKGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyYW5raW5nTmlja25hbWUnKS52YWx1ZXx8JycpLnRyaW0oKTsKIGNvbnN0IHNob3dfZnVsbF9uYW1lPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyYW5raW5nRnVsbE5hbWUnKS5jaGVja2VkOwogaWYocGhvbmUubGVuZ3RoIT09MTApe21zZy5jbGFzc05hbWU9J2Zvcm0tbWVzc2FnZSBlcnJvcic7bXNnLnRleHRDb250ZW50PSfoq4vovLjlhaXlrozmlbTmiYvmqZ/omZ/norwnO3JldHVybn0KIGJ0bi5kaXNhYmxlZD10cnVlO21zZy5jbGFzc05hbWU9J2Zvcm0tbWVzc2FnZSc7bXNnLnRleHRDb250ZW50PSflhLLlrZjkuK3igKYnOwogdHJ5ewogIGF3YWl0IHBvc3QoJ2N1cGJvb2stcHVibGljJyx7YWN0aW9uOid1cGRhdGVfcHJvZmlsZScscGhvbmUsbmlja25hbWUsc2hvd19mdWxsX25hbWV9KTsKICBtc2cuY2xhc3NOYW1lPSdmb3JtLW1lc3NhZ2Ugc3VjY2Vzcyc7bXNnLnRleHRDb250ZW50PSflt7Lmm7TmlrDmjpLooYzmppzpoa/npLroqK3lrponOwogIGxvYWRIb21lKCk7CiB9Y2F0Y2goZSl7CiAgbXNnLmNsYXNzTmFtZT0nZm9ybS1tZXNzYWdlIGVycm9yJzttc2cudGV4dENvbnRlbnQ9ZS5tZXNzYWdlfHwn5YSy5a2Y5aSx5pWXJzsKIH1maW5hbGx5e2J0bi5kaXNhYmxlZD1mYWxzZX0KfTsKPC9zY3JpcHQ+').decode('utf-8')
+          if '</body>' not in s:
+              raise SystemExit('missing body close')
+          p.write_text(s.replace('</body>',payload+'</body>',1),encoding='utf-8')
+          PY
+      - name: Commit
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "[recovered] Add ranking nickname and full-name settings"
+          git push
