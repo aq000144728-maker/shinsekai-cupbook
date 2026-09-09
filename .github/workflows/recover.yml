@@ -63,6 +63,9 @@ jobs:
           center_css = '<style id="home-card-center-v3">.actions .card .txt{width:100%;min-width:0;text-align:center!important;display:flex!important;flex-direction:column;align-items:center!important;justify-content:center!important}.actions .card .txt h3{width:100%!important;margin:0!important;min-height:0!important;font-size:20px!important;line-height:1.3!important;letter-spacing:0!important;font-weight:1000!important;text-align:center!important;display:block!important}.actions .card .txt p{width:100%!important;margin:6px 0 0!important;font-size:14px!important;line-height:1.35!important;font-weight:800!important;text-align:center!important}.quick-card .quick-form{width:100%}@media(max-width:440px){.actions .card .txt h3{font-size:18px!important;line-height:1.25!important}.actions .card .txt p{font-size:13px!important;line-height:1.3!important}.quick-card .txt h3{font-size:18px!important}}</style>'
           if 'id="home-card-center-v3"' not in s:
               s = s.replace('</head>', center_css + '</head>', 1)
+          visual_css = '<style id="home-card-center-v4">.actions .card.use,.actions .card.lookup{grid-template-columns:92px minmax(0,1fr) 92px!important}.actions .card.use .pic,.actions .card.lookup .pic{grid-column:1!important;justify-self:center}.actions .card.use .txt,.actions .card.lookup .txt{grid-column:2!important;text-align:center!important}.actions .card.use .go,.actions .card.lookup .go{grid-column:3!important;justify-self:center}.actions .card.use .txt h3,.actions .card.lookup .txt h3{font-size:19px!important}.actions .card.use .txt p,.actions .card.lookup .txt p{font-size:14px!important}@media(max-width:440px){.actions .card.use,.actions .card.lookup{grid-template-columns:74px minmax(0,1fr) 74px!important}.actions .card.use .txt h3,.actions .card.lookup .txt h3{font-size:18px!important}.actions .card.use .txt p,.actions .card.lookup .txt p{font-size:13px!important}}</style>'
+          if 'id="home-card-center-v4"' not in s:
+              s = s.replace('</head>', visual_css + '</head>', 1)
           p.write_text(s, encoding='utf-8')
           PY
       - name: Commit recovered source
@@ -74,5 +77,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "[recovered] Center and resize home card text"
+          git commit -m "[recovered] Visually center home card content"
           git push
