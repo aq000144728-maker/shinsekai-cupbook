@@ -1,0 +1,38 @@
+name: Force bigger second and third titles
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/force-big-card-titles.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Append final title override
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker='id="force-big-card-titles-v8"'
+          css='<style id="force-big-card-titles-v8">.actions .card.use .txt h3,.actions .card.lookup .txt h3{font-size:28px!important;line-height:1.2!important;font-weight:1000!important}.quick-card .txt h3{font-size:24px!important}@media(max-width:440px){.actions .card.use .txt h3,.actions .card.lookup .txt h3{font-size:25px!important}.quick-card .txt h3{font-size:22px!important}}</style>'
+          if marker not in s:
+              s=s.replace('</head>',css+'</head>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "[recovered] Force bigger second and third titles"
+          git push
