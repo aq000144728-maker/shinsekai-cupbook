@@ -454,4 +454,80 @@ window.saveRankingProfile=async function(){
   msg.className='form-message error';msg.textContent=e.message||'儲存失敗';
  }finally{btn.disabled=false}
 };
-</script></body></html>
+</script><style id="cupbook-history-audit-v2">
+.rank-progress{margin:12px 0;border:3px solid #080808;border-radius:12px;background:#ffd91b;padding:13px;text-align:center;font-weight:1000;font-size:18px;box-shadow:3px 3px 0 #080808}
+.cup-history{margin-top:18px}.cup-history h3,.admin-ledger h3{margin:0 0 10px;font-size:21px}.history-empty{border:2px dashed #999;border-radius:10px;padding:14px;text-align:center;font-weight:800;color:#666;background:#fff}
+.history-row{border:3px solid #080808;border-radius:12px;background:#fff;padding:12px;margin:10px 0}.history-row.deposit{border-left:9px solid #ff4c91}.history-row.use{border-left:9px solid #58c6b4}.history-main{display:flex;align-items:center;justify-content:space-between;gap:10px}.history-main b{font-size:18px}.history-cups{font-size:20px;font-weight:1000}.history-meta{display:flex;flex-wrap:wrap;gap:7px 12px;margin-top:7px;font-size:13px;font-weight:800;color:#555}.history-edited{display:inline-block;border:2px solid #080808;border-radius:999px;background:#fff8c7;padding:2px 7px;color:#080808}.signature-view-btn{width:auto;margin:9px 0 0;padding:7px 11px;font-size:14px;background:#fff}
+.signature-viewer{position:fixed;inset:0;z-index:300;background:#000b;display:none;align-items:center;justify-content:center;padding:18px}.signature-viewer.show{display:flex}.signature-panel{width:min(520px,100%);background:#fff8dc;border:4px solid #080808;border-radius:18px;padding:14px}.signature-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:1000;font-size:20px}.signature-panel-head button{border:0;background:none;font-size:30px;font-weight:1000}.signature-image-box{margin-top:10px;min-height:160px;border:3px solid #080808;border-radius:10px;background:#fff;display:grid;place-items:center;padding:10px}.signature-image-box img{display:block;max-width:100%;max-height:280px}
+.admin-ledger{margin-top:22px;border-top:4px solid #080808;padding-top:18px}.admin-ledger-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.admin-ledger-toolbar .btn{width:auto;margin:0;padding:8px 11px;font-size:14px}.ledger-day{margin:18px 0 8px;background:#080808;color:#fff;border-radius:9px;padding:7px 10px;font-weight:1000}.ledger-row,.audit-row{border:3px solid #080808;border-radius:12px;background:#fff;padding:11px;margin:9px 0}.ledger-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.ledger-customer{font-weight:1000;font-size:17px}.ledger-phone{font-size:13px;font-weight:800;color:#666}.ledger-amount{font-size:18px;font-weight:1000;white-space:nowrap}.ledger-row.deposit .ledger-amount{color:#d92770}.ledger-row.use .ledger-amount{color:#08785f}.ledger-meta,.audit-meta{margin-top:6px;font-size:13px;font-weight:800;color:#666;line-height:1.5}.ledger-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.ledger-actions button{border:2px solid #080808;border-radius:8px;background:#ffd91b;padding:7px 9px;font-weight:1000}.audit-title{font-weight:1000}.audit-change{margin-top:6px;font-size:16px;font-weight:1000}.audit-reason{margin-top:6px;border-radius:8px;background:#fff8c7;padding:7px;font-weight:800}.ledger-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}.ledger-tab{border:3px solid #080808;border-radius:9px;background:#fff;padding:9px;font-weight:1000}.ledger-tab.active{background:#ff4c91}.ledger-pane{display:none}.ledger-pane.active{display:block}
+@media(max-width:440px){.rank-progress{font-size:16px}.history-main b{font-size:16px}.history-cups{font-size:18px}.admin-ledger-toolbar{align-items:flex-start}.ledger-top{gap:6px}.ledger-customer{font-size:15px}.ledger-amount{font-size:16px}}
+</style>
+<script id="cupbook-history-audit-script-v2">
+(function(){
+ const $=id=>document.getElementById(id);
+ const safe=v=>typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ const fmt=t=>{try{return new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(t))}catch{return String(t||'')}};
+ const day=t=>{try{return new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'}).format(new Date(t))}catch{return String(t||'')}};
+ function ensureSignatureViewer(){
+  if($('signatureViewer'))return;
+  const d=document.createElement('div');d.id='signatureViewer';d.className='signature-viewer';
+  d.innerHTML='<div class="signature-panel"><div class="signature-panel-head"><span>客人簽名</span><button type="button" aria-label="關閉" onclick="closeCupSignature()">×</button></div><div id="signatureImageBox" class="signature-image-box">讀取中…</div></div>';
+  d.addEventListener('click',e=>{if(e.target===d)window.closeCupSignature()});document.body.appendChild(d);
+ }
+ window.closeCupSignature=function(){const v=$('signatureViewer');if(v)v.classList.remove('show')};
+ window.viewCupSignature=async function(transactionId){
+  ensureSignatureViewer();const v=$('signatureViewer'),box=$('signatureImageBox');v.classList.add('show');box.textContent='讀取中…';
+  try{const phone=String($('lookupPhone')?.value||'').replace(/\D/g,'');const d=await post('cupbook-public',{action:'signature',phone,transaction_id:transactionId});box.innerHTML='<img alt="客人簽名" src="'+safe(d.signature)+'">'}catch(e){box.textContent=e.message||'讀取簽名失敗'}
+ };
+ function historyHtml(history){
+  if(!Array.isArray(history)||!history.length)return '<div class="history-empty">目前沒有寄杯／扣杯紀錄</div>';
+  return history.map(x=>{const dep=x.type==='deposit',label=dep?'新增寄杯':'扣除寄杯',sign=x.has_signature?'<button type="button" class="btn secondary signature-view-btn" onclick="viewCupSignature(\''+safe(x.id)+'\')">查看簽名</button>':'';return '<div class="history-row '+(dep?'deposit':'use')+'"><div class="history-main"><b>'+label+'</b><span class="history-cups">'+(dep?'+':'−')+Number(x.cups||0)+' 杯</span></div><div class="history-meta"><span>'+fmt(x.created_at)+'</span><span>交易後剩餘 '+Number(x.balance_after||0)+' 杯</span>'+(x.edited?'<span class="history-edited">已修改</span>':'')+'</div>'+sign+'</div>'}).join('');
+ }
+ window.lookupCup=async function(){
+  const el=$('lookupResult');if(!el)return;el.innerHTML='<div class="result">查詢中…</div>';
+  try{
+   const d=await post('cupbook-public',{action:'lookup',phone:$('lookupPhone').value});
+   if(!d.found){el.innerHTML='<div class="result">查無寄杯資料</div>';return}
+   const c=d.customer,nickname=String(c.nickname||'');
+   const progress=Number(c.rank)===1?'🏆 目前已是第 1 名':'再寄 <b>'+Number(c.cups_to_next||0)+'</b> 杯，就能進第 <b>'+Number(c.next_rank||Math.max(1,Number(c.rank||1)-1))+'</b> 名';
+   el.innerHTML='<div class="result"><b>'+safe(c.name)+'</b><div class="stat"><div>剩餘杯數<b>'+Number(c.current_cups||0)+'</b></div><div>累積寄杯<b>'+Number(c.total_deposited||0)+'</b></div><div>已使用<b>'+Number(c.total_used||0)+'</b></div><div>排行<b>#'+(c.rank||'-')+'</b></div></div></div><div class="rank-progress">'+progress+'</div><div class="ranking-profile"><h3>排行榜顯示設定</h3><div class="field"><label for="rankingNickname">暱稱</label><input id="rankingNickname" maxlength="30" autocomplete="off" placeholder="輸入排行榜暱稱" value="'+safe(nickname)+'"></div><label class="ranking-check"><input id="rankingFullName" type="checkbox" '+(c.show_full_name?'checked':'')+'><span>排行榜顯示完整姓名（全名）</span></label><div class="ranking-note">設定暱稱後，排行榜直接使用暱稱，不再顯示「姓氏＋先生/小姐」；勾選全名時則顯示登記全名。</div><button id="saveRankingProfileBtn" class="btn" type="button" onclick="saveRankingProfile()">儲存排行榜設定</button><div id="rankingProfileMessage" class="form-message" aria-live="polite"></div></div><div class="cup-history"><h3>寄杯／使用歷史</h3>'+historyHtml(d.history)+'</div>';
+  }catch(e){el.innerHTML='<div class="result">'+safe(e.message||'查詢失敗')+'</div>'}
+ };
+ window.saveRankingProfile=async function(){
+  const msg=$('rankingProfileMessage'),btn=$('saveRankingProfileBtn'),phone=String($('lookupPhone')?.value||'').replace(/\D/g,''),nickname=String($('rankingNickname')?.value||'').trim(),show_full_name=!!$('rankingFullName')?.checked;
+  if(phone.length!==10){msg.className='form-message error';msg.textContent='請輸入完整手機號碼';return}
+  btn.disabled=true;msg.className='form-message';msg.textContent='儲存中…';
+  try{await post('cupbook-public',{action:'update_profile',phone,nickname,show_full_name});msg.className='form-message success';msg.textContent='已更新排行榜顯示設定';await loadHome();setTimeout(()=>window.lookupCup(),350)}catch(e){msg.className='form-message error';msg.textContent=e.message||'儲存失敗'}finally{btn.disabled=false}
+ };
+ function ensureAdminLedger(){
+  const area=$('adminArea');if(!area||$('adminLedger'))return;
+  const s=document.createElement('section');s.id='adminLedger';s.className='admin-ledger';s.innerHTML='<div class="admin-ledger-toolbar"><h3>後台交易紀錄</h3><button type="button" class="btn secondary" onclick="loadAdminLedger()">重新整理</button></div><div class="ledger-tabs"><button id="ledgerTxTab" type="button" class="ledger-tab active" onclick="switchLedgerTab(\'tx\')">每日寄杯／扣杯</button><button id="ledgerAuditTab" type="button" class="ledger-tab" onclick="switchLedgerTab(\'audit\')">修改紀錄</button></div><div id="ledgerTxPane" class="ledger-pane active"><div id="ledgerTransactions" class="history-empty">讀取中…</div></div><div id="ledgerAuditPane" class="ledger-pane"><div id="ledgerAudits" class="history-empty">讀取中…</div></div>';area.appendChild(s);
+ }
+ window.switchLedgerTab=function(which){const tx=which==='tx';$('ledgerTxTab')?.classList.toggle('active',tx);$('ledgerAuditTab')?.classList.toggle('active',!tx);$('ledgerTxPane')?.classList.toggle('active',tx);$('ledgerAuditPane')?.classList.toggle('active',!tx)};
+ function ledgerTransactionsHtml(rows){
+  if(!rows.length)return '<div class="history-empty">目前沒有交易紀錄</div>';
+  let last='',out='';for(const x of rows){const d=day(x.created_at);if(d!==last){out+='<div class="ledger-day">'+safe(d)+'</div>';last=d}const c=x.customers||{},dep=x.type==='deposit';out+='<div class="ledger-row '+(dep?'deposit':'use')+'"><div class="ledger-top"><div><div class="ledger-customer">'+safe(c.name||'未知客人')+'</div><div class="ledger-phone">'+safe(c.phone||'')+'</div></div><div class="ledger-amount">'+(dep?'+':'−')+Number(x.cups||0)+' 杯</div></div><div class="ledger-meta">'+fmt(x.created_at)+(x.has_signature?'・有簽名':'')+((x.updated_at&&new Date(x.updated_at)-new Date(x.created_at)>1000)?'・已修改':'')+'</div><div class="ledger-actions"><button type="button" onclick="editLedgerTransaction(\''+safe(x.id)+'\','+Number(x.cups||0)+')">修改這筆杯數</button></div></div>'}return out;
+ }
+ function ledgerAuditsHtml(rows){
+  if(!rows.length)return '<div class="history-empty">目前沒有修改紀錄</div>';
+  return rows.map(a=>{const c=a.customers||{};return '<div class="audit-row"><div class="audit-title">'+safe(c.name||'未知客人')+'・'+safe(c.phone||'')+'</div><div class="audit-change">'+(a.old_type==='deposit'?'寄杯':'扣杯')+' '+Number(a.old_cups||0)+' 杯 → '+Number(a.new_cups||0)+' 杯</div><div class="audit-meta">剩餘杯數 '+Number(a.customer_balance_before||0)+' → '+Number(a.customer_balance_after||0)+'・'+fmt(a.created_at)+'・'+safe(a.edited_by||'後台管理員')+'</div><div class="audit-reason">修改原因：'+safe(a.reason||'')+'</div></div>'}).join('');
+ }
+ window.loadAdminLedger=async function(){
+  ensureAdminLedger();const tx=$('ledgerTransactions'),au=$('ledgerAudits');if(!tx||!au||!getAdminPin())return;tx.innerHTML='<div class="history-empty">讀取中…</div>';au.innerHTML='<div class="history-empty">讀取中…</div>';
+  try{const d=await adminPost({action:'recent'}),rows=Array.isArray(d.transactions)?d.transactions:[],audits=Array.isArray(d.audits)?d.audits:[];tx.innerHTML=ledgerTransactionsHtml(rows);au.innerHTML=ledgerAuditsHtml(audits)}catch(e){tx.innerHTML='<div class="history-empty">'+safe(e.message||'讀取失敗')+'</div>';au.innerHTML=tx.innerHTML}
+ };
+ window.editLedgerTransaction=async function(id,current){
+  const value=prompt('修改杯數（目前 '+current+' 杯）',String(current));if(value===null)return;const cups=Number(String(value).replace(/\D/g,''));if(!Number.isInteger(cups)||cups<=0)return alert('請輸入正確杯數');if(cups===Number(current))return alert('杯數沒有變更');const reason=prompt('請填寫修改原因（必填）','');if(reason===null)return;if(!String(reason).trim())return alert('請填寫修改原因');if(!confirm('確認將 '+current+' 杯修改為 '+cups+' 杯？\n這次修改會永久保留在修改紀錄。'))return;
+  try{await adminPost({action:'edit_transaction',transaction_id:id,cups,reason:String(reason).trim()});alert('修改完成，修改前後資料已保留');await loadAdminLedger();await loadHome()}catch(e){alert(e.message||'修改失敗')}
+ };
+ const originalOpenLogin=window.openLogin;
+ window.openLogin=function(){
+  if(!getAdminPin())return originalOpenLogin();
+  pendingCreate=false;pendingSearch='';loginOnly=true;$('adminTitle').textContent='後台交易紀錄';$('adminModal').classList.add('show');$('pinBox').style.display='none';$('newCustomerArea').style.display='none';$('adminArea').style.display='block';$('customerResults').innerHTML='';$('transactionBox').innerHTML='';selectedCustomer=null;searchResults=[];updateLoginButton();ensureAdminLedger();loadAdminLedger();
+ };
+ const originalApplyPendingAction=window.applyPendingAction;
+ window.applyPendingAction=function(){const r=originalApplyPendingAction.apply(this,arguments);setTimeout(()=>{if($('adminArea')&&$('adminArea').style.display==='block'){ensureAdminLedger();loadAdminLedger()}},0);return r};
+ ensureSignatureViewer();ensureAdminLedger();
+})();
+</script>
+</body></html>
