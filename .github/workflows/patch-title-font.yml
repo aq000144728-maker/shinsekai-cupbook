@@ -1,0 +1,35 @@
+name: Match action title font sizes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/patch-title-font.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Match title size
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace('.actions .card.use .txt h3,.actions .card.lookup .txt h3{font-size:19px!important}', '.actions .card.use .txt h3,.actions .card.lookup .txt h3{font-size:20px!important}')
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "[recovered] Match card title font size"
+          git push
