@@ -407,4 +407,51 @@ async function submitTx(){
     button.textContent='確認扣除';
     updateDeductSubmit();
   }
-}let createdCustomerForPurchase=null,createSubmitting=false;function showCreate(){pendingCreate=true;document.getElementById('adminTitle').textContent='新世界の王者参上!';document.getElementById('adminArea').style.display='none';document.getElementById('newCustomerArea').style.display='block';resetNewCustomerForm()}function resetNewCustomerForm(){createdCustomerForPurchase=null;createSubmitting=false;document.getElementById('newName').value='';document.getElementById('newPhone').value='';document.querySelectorAll('input[name="purchaseGroup"]').forEach(x=>x.checked=false);document.getElementById('cashConfirmed').checked=false;const m=document.getElementById('createCustomerMessage');m.textContent='';m.className='form-message';const b=document.getElementById('createCustomerSubmit');b.textContent='完成';b.disabled=true}function updateNewCustomerSubmit(){const name=document.getElementById('newName').value.trim(),phone=document.getElementById('newPhone').value.replace(/\D/g,''),purchase=document.querySelector('input[name="purchaseGroup"]:checked'),cash=document.getElementById('cashConfirmed').checked;document.getElementById('newPhone').value=phone;document.getElementById('createCustomerSubmit').disabled=createSubmitting||!(name&&/^09\d{8}$/.test(phone)&&purchase&&cash)}async function createCustomer(){updateNewCustomerSubmit();const button=document.getElementById('createCustomerSubmit');if(button.disabled)return;const name=document.getElementById('newName').value.trim(),phone=document.getElementById('newPhone').value,purchase=document.querySelector('input[name="purchaseGroup"]:checked'),cups=Number(purchase.value),amount=Number(purchase.dataset.amount),units=cups/20,message=document.getElementById('createCustomerMessage');createSubmitting=true;button.disabled=true;button.textContent='處理中…';message.textContent='正在建立客戶與寄杯資料…';message.className='form-message';try{if(!createdCustomerForPurchase){const created=await adminPost({action:'create',name,phone});createdCustomerForPurchase=created.customer}const deposited=await adminPost({action:'transaction',customer_id:createdCustomerForPurchase.id,type:'deposit',cups,note:'新世界の王者参上!｜'+units+'組｜非常確認收款 $'+amount,signature:null});selectedCustomer=deposited.customer;pendingCreate=false;createdCustomerForPurchase=null;message.textContent='完成：已寄杯 '+cups+' 杯';message.className='form-message success';button.textContent='完成';loadHome();alert('完成：已建立 '+name+'，寄杯 '+cups+' 杯（$'+amount+'）');closeModal('adminModal')}catch(e){message.textContent=e.message;message.className='form-message error';button.textContent='完成'}finally{createSubmitting=false;updateNewCustomerSubmit()}}updateLoginButton();loadHome();</script></body></html>
+}let createdCustomerForPurchase=null,createSubmitting=false;function showCreate(){pendingCreate=true;document.getElementById('adminTitle').textContent='新世界の王者参上!';document.getElementById('adminArea').style.display='none';document.getElementById('newCustomerArea').style.display='block';resetNewCustomerForm()}function resetNewCustomerForm(){createdCustomerForPurchase=null;createSubmitting=false;document.getElementById('newName').value='';document.getElementById('newPhone').value='';document.querySelectorAll('input[name="purchaseGroup"]').forEach(x=>x.checked=false);document.getElementById('cashConfirmed').checked=false;const m=document.getElementById('createCustomerMessage');m.textContent='';m.className='form-message';const b=document.getElementById('createCustomerSubmit');b.textContent='完成';b.disabled=true}function updateNewCustomerSubmit(){const name=document.getElementById('newName').value.trim(),phone=document.getElementById('newPhone').value.replace(/\D/g,''),purchase=document.querySelector('input[name="purchaseGroup"]:checked'),cash=document.getElementById('cashConfirmed').checked;document.getElementById('newPhone').value=phone;document.getElementById('createCustomerSubmit').disabled=createSubmitting||!(name&&/^09\d{8}$/.test(phone)&&purchase&&cash)}async function createCustomer(){updateNewCustomerSubmit();const button=document.getElementById('createCustomerSubmit');if(button.disabled)return;const name=document.getElementById('newName').value.trim(),phone=document.getElementById('newPhone').value,purchase=document.querySelector('input[name="purchaseGroup"]:checked'),cups=Number(purchase.value),amount=Number(purchase.dataset.amount),units=cups/20,message=document.getElementById('createCustomerMessage');createSubmitting=true;button.disabled=true;button.textContent='處理中…';message.textContent='正在建立客戶與寄杯資料…';message.className='form-message';try{if(!createdCustomerForPurchase){const created=await adminPost({action:'create',name,phone});createdCustomerForPurchase=created.customer}const deposited=await adminPost({action:'transaction',customer_id:createdCustomerForPurchase.id,type:'deposit',cups,note:'新世界の王者参上!｜'+units+'組｜非常確認收款 $'+amount,signature:null});selectedCustomer=deposited.customer;pendingCreate=false;createdCustomerForPurchase=null;message.textContent='完成：已寄杯 '+cups+' 杯';message.className='form-message success';button.textContent='完成';loadHome();alert('完成：已建立 '+name+'，寄杯 '+cups+' 杯（$'+amount+'）');closeModal('adminModal')}catch(e){message.textContent=e.message;message.className='form-message error';button.textContent='完成'}finally{createSubmitting=false;updateNewCustomerSubmit()}}updateLoginButton();loadHome();</script><style id="ranking-profile-v1">
+.ranking-profile{margin-top:14px;border:3px solid #080808;border-radius:12px;background:#fff;padding:14px}
+.ranking-profile h3{margin:0 0 10px;font-size:20px;text-align:left}
+.ranking-profile .field{margin:10px 0}
+.ranking-profile .field label{font-size:15px}
+.ranking-check{display:flex;align-items:center;gap:10px;border:3px solid #080808;border-radius:10px;background:#fff8c7;padding:12px;margin:10px 0;font-weight:1000;cursor:pointer}
+.ranking-check input{width:22px;height:22px;flex:0 0 auto;accent-color:#ff4c91}
+.ranking-note{font-size:13px;font-weight:800;color:#666;line-height:1.45;margin:7px 1px 0}
+.ranking-profile .btn{margin-top:12px;background:#ff4c91}
+@media(max-width:440px){.ranking-profile{padding:12px}.ranking-profile h3{font-size:19px}}
+</style>
+<script id="ranking-profile-script-v1">
+window.lookupCup=async function(){
+ const el=document.getElementById('lookupResult');
+ el.innerHTML='<div class="result">查詢中…</div>';
+ try{
+  const d=await post('cupbook-public',{action:'lookup',phone:document.getElementById('lookupPhone').value});
+  if(!d.found){el.innerHTML='<div class="result">查無寄杯資料</div>';return}
+  const c=d.customer;
+  const nickname=String(c.nickname||'');
+  el.innerHTML=`<div class="result"><b>${esc(c.name)}</b><div class="stat"><div>剩餘杯數<b>${c.current_cups}</b></div><div>累積寄杯<b>${c.total_deposited}</b></div><div>已使用<b>${c.total_used}</b></div><div>排行<b>#${c.rank||'-'}</b></div></div></div>
+  <div class="ranking-profile">
+    <h3>排行榜顯示設定</h3>
+    <div class="field"><label for="rankingNickname">暱稱</label><input id="rankingNickname" maxlength="30" autocomplete="off" placeholder="輸入排行榜暱稱" value="${esc(nickname)}"></div>
+    <label class="ranking-check"><input id="rankingFullName" type="checkbox" ${c.show_full_name?'checked':''}><span>排行榜顯示完整姓名（全名）</span></label>
+    <div class="ranking-note">未勾選時顯示暱稱；暱稱空白則顯示「姓氏＋先生/小姐」。</div>
+    <button id="saveRankingProfileBtn" class="btn" type="button" onclick="saveRankingProfile()">儲存排行榜設定</button>
+    <div id="rankingProfileMessage" class="form-message" aria-live="polite"></div>
+  </div>`;
+ }catch(e){el.innerHTML=`<div class="result">${esc(e.message)}</div>`}
+};
+window.saveRankingProfile=async function(){
+ const msg=document.getElementById('rankingProfileMessage');
+ const btn=document.getElementById('saveRankingProfileBtn');
+ const phone=String(document.getElementById('lookupPhone').value||'').replace(/\D/g,'');
+ const nickname=String(document.getElementById('rankingNickname').value||'').trim();
+ const show_full_name=document.getElementById('rankingFullName').checked;
+ if(phone.length!==10){msg.className='form-message error';msg.textContent='請輸入完整手機號碼';return}
+ btn.disabled=true;msg.className='form-message';msg.textContent='儲存中…';
+ try{
+  await post('cupbook-public',{action:'update_profile',phone,nickname,show_full_name});
+  msg.className='form-message success';msg.textContent='已更新排行榜顯示設定';
+  loadHome();
+ }catch(e){
+  msg.className='form-message error';msg.textContent=e.message||'儲存失敗';
+ }finally{btn.disabled=false}
+};
+</script></body></html>
