@@ -1,0 +1,36 @@
+name: Center text within each card column
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[column-center-v7]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply column-centered card layout
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          css='''<style id="card-column-center-v7">.actions .card.use,.actions .card.lookup{grid-template-columns:92px minmax(0,1fr) 92px!important;align-items:center!important}.actions .card.use .pic,.actions .card.lookup .pic{position:static!important;grid-column:1!important;justify-self:center!important}.actions .card.use .txt,.actions .card.lookup .txt{position:static!important;left:auto!important;top:auto!important;transform:none!important;width:100%!important;grid-column:2!important;justify-self:stretch!important;align-self:center!important;margin:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important}.actions .card.use .txt h3,.actions .card.lookup .txt h3,.actions .card.use .txt p,.actions .card.lookup .txt p{position:static!important;left:auto!important;top:auto!important;transform:none!important;width:100%!important;margin-left:0!important;margin-right:0!important;text-align:center!important}.actions .card.use .go,.actions .card.lookup .go{position:static!important;grid-column:3!important;justify-self:center!important}.quick-card{grid-template-columns:58px 92px minmax(0,1fr)!important;align-items:center!important}.quick-card .pic{grid-column:2!important;justify-self:center!important}.quick-card .txt{position:static!important;left:auto!important;top:auto!important;transform:none!important;width:100%!important;grid-column:3!important;justify-self:stretch!important;align-self:center!important;text-align:center!important}.quick-card .txt h3{position:static!important;left:auto!important;top:auto!important;transform:none!important;width:100%!important;margin:0!important;text-align:center!important;white-space:normal!important}.quick-card .quick-form{width:100%!important;margin-top:8px!important}@media(max-width:440px){.actions .card.use,.actions .card.lookup{grid-template-columns:74px minmax(0,1fr) 74px!important}.quick-card{grid-template-columns:52px 68px minmax(0,1fr)!important}}</style>'''
+          if 'id="card-column-center-v7"' not in s:
+              s=s.replace('</head>',css+'</head>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "[column-center-v7] Center text within each card column"
+          git push
