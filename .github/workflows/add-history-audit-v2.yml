@@ -1,0 +1,40 @@
+name: Add cup history and audit UI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/add-history-audit-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add history and audit UI
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64,zlib
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          if 'cupbook-history-audit-v2' in s:
+              raise SystemExit(0)
+          payload=zlib.decompress(base64.b64decode('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'))).decode('utf-8')
+          if '</body>' not in s:
+              raise SystemExit('missing body close')
+          p.write_text(s.replace('</body>',payload+'</body>',1),encoding='utf-8')
+          PY
+      - name: Commit
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "[recovered] Add customer history and admin audit UI"
+          git push
