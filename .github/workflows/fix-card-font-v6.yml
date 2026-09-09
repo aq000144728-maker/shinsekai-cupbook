@@ -1,0 +1,33 @@
+name: Increase home card font sizes
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[font-v6]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch font sizes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          css='<style id="home-card-font-v6">.actions .card .txt h3{font-size:24px!important;line-height:1.25!important}.actions .card .txt p{font-size:17px!important;line-height:1.35!important}.quick-card .txt h3{font-size:24px!important}@media(max-width:440px){.actions .card .txt h3{font-size:22px!important}.actions .card .txt p{font-size:16px!important}.quick-card .txt h3{font-size:22px!important}}</style>'
+          if 'id="home-card-font-v6"' not in s:
+              s=s.replace('</head>',css+'</head>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit patch
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "[font-v6] Increase home card font sizes"
+          git push
