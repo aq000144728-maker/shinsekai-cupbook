@@ -1,0 +1,40 @@
+name: Apply cupbook history audit frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-history-audit-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply frontend patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          if 'cupbook-history-audit-v2' in s:
+              raise SystemExit(0)
+          patch=Path('patches/history-audit-v2.html').read_text(encoding='utf-8')
+          if '</body>' not in s:
+              raise SystemExit('missing body close')
+          p.write_text(s.replace('</body>',patch+'\n</body>',1),encoding='utf-8')
+          PY
+      - name: Commit
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "[recovered] Add cup history and audit frontend"
+          git pull --rebase origin main
+          git push
