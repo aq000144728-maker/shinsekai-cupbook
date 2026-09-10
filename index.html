@@ -530,4 +530,42 @@ window.saveRankingProfile=async function(){
  ensureSignatureViewer();ensureAdminLedger();
 })();
 </script>
+<script id="nickname-only-explanation-v3">
+(function(){
+ const originalLookup=window.lookupCup;
+ window.lookupCup=async function(){
+  await originalLookup.apply(this,arguments);
+  setTimeout(()=>{
+   const cb=document.getElementById('rankingFullName');
+   if(cb){
+    const label=cb.closest('label');
+    const next=label&&label.nextElementSibling;
+    if(next&&next.classList.contains('ranking-note')) next.remove();
+    if(label){
+     const note=document.createElement('div');
+     note.className='ranking-note';
+     note.textContent='輸入暱稱後，排行榜就會顯示你的暱稱，不會再顯示「○先生／○小姐」。';
+     label.replaceWith(note);
+    }
+   }
+  },0);
+ };
+ window.saveRankingProfile=async function(){
+  const msg=document.getElementById('rankingProfileMessage');
+  const btn=document.getElementById('saveRankingProfileBtn');
+  const phone=String(document.getElementById('lookupPhone')?.value||'').replace(/\D/g,'');
+  const nickname=String(document.getElementById('rankingNickname')?.value||'').trim();
+  if(phone.length!==10){msg.className='form-message error';msg.textContent='請輸入完整手機號碼';return}
+  btn.disabled=true;msg.className='form-message';msg.textContent='儲存中…';
+  try{
+   await post('cupbook-public',{action:'update_profile',phone,nickname,show_full_name:false});
+   msg.className='form-message success';msg.textContent='已更新排行榜暱稱';
+   await loadHome();
+   setTimeout(()=>window.lookupCup(),350);
+  }catch(e){
+   msg.className='form-message error';msg.textContent=e.message||'儲存失敗';
+  }finally{btn.disabled=false}
+ };
+})();
+</script>
 </body></html>
